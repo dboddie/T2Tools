@@ -1,11 +1,11 @@
 #! /usr/bin/python
 """
     Name         : T2UEF.py
-    Author       : David Boddie
+    Author       : David Boddie <david@boddie.org.uk>
     Created      : Wed 04th October 2000
-    Last updated : Fri 3rd May 2002
+    Last updated : Tue 15th April 2003
     Purpose      : Convert Slogger T2 files to UEF format archives.
-    WWW          : http://david.boddie.org.uk/Projects/Emulation/T2Tools
+    WWW          : http://www.boddie.org.uk/david/Projects/Emulation/T2Tools
 """
 
 def number(size, n):
@@ -116,22 +116,28 @@ import gzip, os, string, sys
 import cmdsyntax
 
 syntax = "[-c] <Tape file> <UEF file>"
-version = "0.14c (Fri 3rd May 2002)"
+version = "0.15c (Tue 15th April 2003)"
 
 syntax_obj = cmdsyntax.Syntax(syntax)
 
-matches = syntax_obj.get_args(sys.argv[1:])
+matches, failed = syntax_obj.get_args(sys.argv[1:], return_failed = 1)
 
 if matches == [] and cmdsyntax.use_GUI() != None:
 
-    form = cmdsyntax.Form("T2UEF", syntax_obj)
+    form = cmdsyntax.Form("T2UEF", syntax_obj, failed[0])
     
-    matches = [form.get_args()]
+    matches = form.get_args()
 
 # Take the first match.
-match = matches[0]
+if len(matches) > 0:
 
-if match == {}:
+    match = matches[0]
+
+else:
+
+    match = None
+
+if match == {} or match is None:
 
     print "Syntax: T2UEF.py "+syntax
     print

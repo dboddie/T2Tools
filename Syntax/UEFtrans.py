@@ -2,11 +2,11 @@
 
 """
     Name         : UEFtrans.py
-    Author       : David Boddie <david@boddie.net>
+    Author       : David Boddie <david@boddie.org.uk>
     Created      : Sun 08th July 2001
-    Last updated : Fri 3rd May 2002
+    Last updated : Tue 15th April 2003
     Purpose      : Catalogue UEF archives or add and remove files.
-    WWW          : http://www.david.boddie.net/Software/Python/UEFtrans/
+    WWW          : http://www.boddie.org.uk/david/Projects/Emulation/UEFtrans
 
     History:
 
@@ -73,6 +73,13 @@
         0.412c (Fri 3rd May 2002)
         The first match is obtained earlier to ensure that, when the GUI
         returns no information, the general help message is displayed.
+        
+        0.42c (Tue 15th April 2003)
+        Changed the call to the cmdsyntax.Form.get_args method as the new
+        cmdsyntax (0.80) behaviour has been changed to be more consistent
+        with the Syntax.get_args behaviour.
+        The form can now also use valid information from failed matches to
+        provide default values for form fields.
 """
 
 import sys, string, os, gzip
@@ -1049,7 +1056,7 @@ if __name__ == '__main__':
     else:
         suffix = '.'
     
-    version = '0.412c (Fri 3rd May 2002)'
+    version = '0.42c (Tue 15th April 2003)'
     
     # Syntax information
     syntax_defn = """
@@ -1097,19 +1104,25 @@ if __name__ == '__main__':
     
     syntax_obj = cmdsyntax.Syntax(syntax_defn)
     
-    matches = syntax_obj.get_args(sys.argv[1:])
+    matches, failed = syntax_obj.get_args(sys.argv[1:], return_failed = 1)
     
     if matches == [] and cmdsyntax.use_GUI("PyQt") != None:
     
-        form = cmdsyntax.Form(sys.argv[0], syntax_obj)
+        form = cmdsyntax.Form(sys.argv[0], syntax_obj, failed[0])
         
-        matches = [form.get_args()]
+        matches = form.get_args()
     
     # Take the first match.
-    match = matches[0]
+    if len(matches) > 0:
+    
+        match = matches[0]
+    
+    else:
+    
+        match = None
     
     # If there are no valid arguments then print the help text
-    if match == {}:
+    if match == {} or match is None:
     
         print_help('general')
         

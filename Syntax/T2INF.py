@@ -2,11 +2,11 @@
 
 """
     Name         : T2INF.py (was T2Peg400.py)
-    Author       : David Boddie <davidb@mcs.st-and.ac.uk>
+    Author       : David Boddie <david@boddie.org.uk>
     Created      : Mon 28th August 2000
-    Last updated : Fri 3rd May 2002
+    Last updated : Tue 15th April 2003
     Purpose      : Convert Slogger T2* files to files on a disc.
-    WWW          : http://david.boddie.org.uk/Projects/Emulation/T2Tools
+    WWW          : http://www.boddie.org.uk/david/Projects/Emulation/T2Tools
 
     License :
 
@@ -131,19 +131,25 @@ if style.verify() == 0:
 # Create a syntax object.
 syntax_obj = cmdsyntax.Syntax(syntax, style)
 
-matches = syntax_obj.get_args(sys.argv[1:], style = style)
+matches, failed = syntax_obj.get_args(sys.argv[1:], style = style, return_failed = 1)
 
 if matches == [] and cmdsyntax.use_GUI() != None:
 
-    form = cmdsyntax.Form("T2UEF", syntax_obj)
+    form = cmdsyntax.Form("T2UEF", syntax_obj, failed[0])
     
-    matches = [form.get_args()]
+    matches = form.get_args()
 
 # Take the first match.
-match = matches[0]
+if len(matches) > 0:
+
+    match = matches[0]
+
+else:
+
+    match = None
 
 # If there are no macthes then print the help text.
-if match == {}:
+if match == {} or match is None:
 
     print "Syntax: T2INF.py "+syntax
     print

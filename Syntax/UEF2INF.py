@@ -2,11 +2,11 @@
 
 """
     Name            : UEF2INF.py
-    Author          : David Boddie <davidb@mcs.st-and.ac.uk>
+    Author          : David Boddie <david@boddie.org.uk>
     Created         : Tue 21st November 2000
-    Last updated    : Fri 3rd May 2002
+    Last updated    : Tue 15th April 2003
     Purpose         : Convert UEF archives to files on a disc.
-    WWW             : http://www.david.boddie.net/Software/Tape2Disc/
+    WWW             : http://www.boddie.org.uk/david/Projects/Emulation/T2Tools
 """
 
 import cmdsyntax, sys, string, os, gzip
@@ -153,7 +153,7 @@ def get_leafname(path):
 
 # Main program
 
-version = '0.12c (Fri 3rd May 2002)'
+version = '0.13c (Tue 15th April 2003)'
 
 style = cmdsyntax.Style()
 
@@ -170,19 +170,25 @@ syntax = "(-l [-v] <UEF file>) | ([-name <stem>] [-v] <UEF file> <destination pa
 # Create a syntax object.
 syntax_obj = cmdsyntax.Syntax(syntax, style)
 
-matches = syntax_obj.get_args(sys.argv[1:], style = style)
+matches, failed = syntax_obj.get_args(sys.argv[1:], style = style, return_failed = 1)
 
 if matches == [] and cmdsyntax.use_GUI() != None:
 
-    form = cmdsyntax.Form("UEF2INF", syntax_obj)
+    form = cmdsyntax.Form("UEF2INF", syntax_obj, failed[0])
     
-    matches = [form.get_args()]
+    matches = form.get_args()
 
 # Take the first match.
-match = matches[0]
+if len(matches) > 0:
+
+    match = matches[0]
+
+else:
+
+    match = None
 
 # If there are no macthes then print the help text.
-if match == {}:
+if match == {} or match is None:
 
     print "Syntax: UEF2INF.py "+syntax
     print

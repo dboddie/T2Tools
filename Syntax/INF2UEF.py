@@ -1,12 +1,12 @@
 #! /usr/bin/env python
 """
     Name         : INF2UEF.py
-    Author       : David Boddie
+    Author       : David Boddie <david@boddie.org.uk>
     Created      : Fri 27th October 2000
-    Last updated : Fri 3rd May 2002
+    Last updated : Tue 15th April 2003
     Purpose      : Convert INF format files to UEF format using an index
                    or the NEXT parameters in the .inf files.
-    WWW          : http://david.boddie.org.uk/Projects/Emulation/T2Tools
+    WWW          : http://www.boddie.org.uk/david/Projects/Emulation/T2Tools
 """
 
 def find_in_list(l, s):
@@ -156,22 +156,28 @@ import gzip, os, string, sys
 import cmdsyntax
 
 syntax = "[-c] <Directory> <UEF file>"
-version = "0.15c (Fri 3rd May 2002)"
+version = "0.16c (Tue 15th April 2003)"
 
 syntax_obj = cmdsyntax.Syntax(syntax)
 
-matches = syntax_obj.get_args(sys.argv[1:])
+matches, failed = syntax_obj.get_args(sys.argv[1:], return_failed = 1)
 
 if matches == [] and cmdsyntax.use_GUI() != None:
 
-    form = cmdsyntax.Form("INF2UEF", syntax_obj)
+    form = cmdsyntax.Form("INF2UEF", syntax_obj, failed[0])
     
-    matches = [form.get_args()]
+    matches = form.get_args()
 
 # Take the first match.
-match = matches[0]
+if len(matches) > 0:
 
-if match == {}:
+    match = matches[0]
+
+else:
+
+    match = None
+
+if match == {} or match is None:
 
     print "Syntax: INF2UEF.py "+syntax
     print
