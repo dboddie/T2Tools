@@ -1,0 +1,62 @@
+				  T2Tools
+
+	[ Tape and disc tools for BBC and Electron emulator users ]
+
+
+Created:	31st October 2000
+Updated:	4th July 2001
+WWW site:	http://www.david.boddie.net/Software/Tape2Disc/
+
+
+Introduction
+
+This package is a collection of Python scripts which convert between
+various formats of archive files related to the BBC and Acorn Electron
+microcomputers. In order to run them, you need to obtain a Python
+interpreter for your computer platform. Look at
+
+http://www.python.org/
+
+for information regarding installation and usage of Python.
+
+
+The Tools
+
+There are seven scripts available:
+
+ADF2INF.py	Extracts files from ADFS disc images and stores
+		them in directories on the native filesystem with
+		suitable .inf files. Disc images are usually files
+		with the suffix .adf or similar.
+		Should be able to deal with 160K, 320K (F format),
+		640K (L format), 800K (D and E format) and 1600K
+		(E format) disc images.
+
+File2UEF.py	Takes a set of files stored on a RISC OS machine,
+		with load, execution and length information intact,
+		and stores them in a UEF file.
+
+INF2File.py	Converts files in INF format to standard files with
+		load, execution and length information on a RISC OS
+		machine.
+
+INF2UEF.py	Takes a directory of files stored on the native
+		file system with accompanying .inf files and stores
+		them in a UEF file.
+
+T2Peg400.py 	Converts Slogger T2 files, created by ROMs such as
+		T2P3, T2P4, T2Peg400 or similar, to a directory of
+		files on the native filesystem with accompanying
+		.inf files which describe the files' attributes for
+		emulators.
+
+T2UEF.py	Converts Slogger T2 files to UEF files for use with
+		ElectrEm (http://electrem.emuunlim.com/).
+
+UEF2INF.py	Converts a UEF file to a directory containing files
+		with their associated .inf files.
+
+
+Contact address
+
+You can contact me (David Boddie) at david@boddie.net
