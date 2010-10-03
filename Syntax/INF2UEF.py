@@ -1,4 +1,5 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
+
 """
 INF2UEF.py - Convert INF format files to UEF format using an index or the NEXT 
              parameters in the .inf files.
@@ -19,14 +20,17 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import gzip, os, string, sys
+import cmdsyntax
+
 def find_in_list(l, s):
 
-    for i in range(0,len(l)):
-
-        if l[i] == s:
-            return i
-
-    return -1
+    try:
+        i = l.index(s)
+    except ValueError:
+        return -1
+    
+    return i
 
 
 def number(size, n):
@@ -38,7 +42,6 @@ def number(size, n):
     while size > 0:
         i = n % 256
         s = s + chr(i)
-#        n = n / 256
         n = n >> 8
         size = size - 1
 
@@ -59,9 +62,8 @@ def hex2num(s):
         elif (a >= 97) & (a <= 102):
             n = n | ((a-97+10) << (i*4))
         else:
-            print "Bad hex", s
-            print
-            sys.exit()
+            sys.stderr.write("Bad hex: %s\n\n" % s)
+            sys.exit(1)
 
     return n
 
@@ -162,315 +164,310 @@ def read_block(f, name, load, exe, length, n):
     return out, last
 
 
-import gzip, os, string, sys
-import cmdsyntax
+if __name__ == "__main__":
 
-syntax = "[-c] <Directory> <UEF file>"
-version = "0.16c (Tue 15th April 2003)"
-
-syntax_obj = cmdsyntax.Syntax(syntax)
-
-matches, failed = syntax_obj.get_args(sys.argv[1:], return_failed = 1)
-
-if matches == [] and cmdsyntax.use_GUI() != None:
-
-    form = cmdsyntax.Form("INF2UEF", syntax_obj, failed[0])
+    syntax = "[-c] <Directory> <UEF file>"
+    version = "0.16c (Tue 15th April 2003)"
     
-    matches = form.get_args()
-
-# Take the first match.
-if len(matches) > 0:
-
-    match = matches[0]
-
-else:
-
-    match = None
-
-if match == {} or match is None:
-
-    print "Syntax: INF2UEF.py "+syntax
-    print
-    print "INF2UEF version "+version
-    print
-    print "Take the files indexed in the directory given using the index.txt file and store"
-    print "them in the UEF file specified as tape files."
-    print
-    print "If the -c flag is specified then the UEF file will be compressed in the form"
-    print "understood by gzip."
-    print
-    sys.exit()
-
-if sys.platform == "RISCOS":
-    suffix = "/"
-else:
-    suffix = "."
-
-# Determine whether the file needs to be compressed
-
-in_dir = match["Directory"]
-uef_file = match["UEF file"]
-
-if match.has_key("-c"):
-
-    compress = 1
-else:
-    compress = 0
-
-
-# See if there is an index file
-
-index_file = in_dir + os.sep + "index" + suffix + "txt"
-
-try:
-    # Examine the index file
-    lines = string.split(open(index_file, "r").read(), "\012")
-
-    index = []
-    real_names = []
-    for i in lines:
-
-        if i == "":
-            break
-
-        details = string.split(i)
-        index.append(details[0])
-        real_names.append(details[-1])
-
-    no_index = 0
-except:
-    no_index = 1
-
-# If there is no index then look at all the .inf files and determine the order
-# in which they are to be stored in the UEF file
-if no_index == 1:
-
-    # List all the files
-    files = os.listdir(in_dir)
-
-    # Keep all the .inf files
-    infs = []
-    for i in files:
-        if string.lower(i[-4:]) == (suffix+"inf"):
-            infs.append(i)
-
-    # Find the file which follows each file and the real name of the file
-    nexts = []
-    names = []
-    for i in infs:
-        # Read the .inf file
-        details = string.split(open(in_dir+os.sep+i, "r").readline())
-
-        # First entry may be the name of the file assuming $.name
-        # or similar
-        if string.find(details[0], ".") != -1:
-            # Add the real name to the list of names
-            names.append(details[0])
-            details = details[1:]
-        else:
-            # Add the file name to the list of names
-            names.append("$."+i)
-
-        # Next two entries should be the load and execution addresses
-        details = details[2:]
-
-        if len(details) >= 2:
-            # Next file should be the last two entries in the list
-            if string.upper(details[-2]) == "NEXT":
-                # Next file
-                nexts.append(details[-1])
-            elif string.upper(details[-1][:5]) == "NEXT=":
-                # Next file
-                nexts.append(details[-1][5:])
-            else:
-                # No next file
-                nexts.append("")
-
-        elif len(details) == 1:
-            # Not enough entries for there to be a NEXT <file> entry
-            # Add to the end of the list (could be the last file)
-            if string.upper(details[-1][:5]) == "NEXT=":
-                # Next file
-                nexts.append(details[-1][5:])
-            else:
-                nexts.append("")
-        else:
-            nexts.append("")
-
-    # Determine the order of files
-    index = []
-    real_names = []
-
-    # Insert files before the ones they specify as next files
-    # Look through the .inf file list and real name list
-    for i in range(0,len(infs)):
-
-        # Determine which files precedes this one
-        which = find_in_list(nexts, names[i])
-        if which == -1:
-            # No files precede this one
-            index.insert(0, infs[i][:-4])
-            real_names.insert(0, names[i])
-        else:
-            # Find the preceding file in the new
-            # real names list
-            which = find_in_list(real_names, names[which])
-
-            if which != -1:
-                # File is there, so add this one after it
-                index.insert(which+1, infs[i][:-4])
-                real_names.insert(which+1, names[i])
-            else:
-                # File is not (yet) present
-
-                # Determine whether there is a file following
-                # this one
-                if nexts[i] != "":
-
-                    # Is the file in the new list?
-                    which = find_in_list(real_names, nexts[i])
+    syntax_obj = cmdsyntax.Syntax(syntax)
+    
+    matches, failed = syntax_obj.get_args(sys.argv[1:], return_failed = 1)
+    
+    if matches == [] and cmdsyntax.use_GUI() != None:
+    
+        form = cmdsyntax.Form("INF2UEF", syntax_obj, failed[0])
         
-                    if which != -1:
-                        # Insert this file before the file in question
-                        index.insert(which, infs[i][:-4])
-                        real_names.insert(which, names[i])
+        matches = form.get_args()
+    
+    # Take the first match.
+    if len(matches) > 0:
+    
+        match = matches[0]
+    
+    else:
+    
+        match = None
+    
+    if match == {} or match is None:
+    
+        sys.stderr.write("Syntax: INF2UEF.py %s\n\n" % syntax)
+        sys.stderr.write("INF2UEF version %s\n\n" % version)
+        sys.stderr.write("Take the files indexed in the directory given using the index.txt file and store\n")
+        sys.stderr.write("them in the UEF file specified as tape files.\n\n")
+        sys.stderr.write("If the -c flag is specified then the UEF file will be compressed in the form\n")
+        sys.stderr.write("understood by gzip.\n\n")
+        sys.exit(1)
+    
+    if sys.platform == "RISCOS":
+        suffix = "/"
+    else:
+        suffix = "."
+    
+    # Determine whether the file needs to be compressed
+    
+    in_dir = match["Directory"]
+    uef_file = match["UEF file"]
+    
+    if match.has_key("-c"):
+    
+        compress = 1
+    else:
+        compress = 0
+    
+    
+    # See if there is an index file
+    
+    index_file = in_dir + os.sep + "index" + suffix + "txt"
+    
+    try:
+        # Examine the index file
+        lines = string.split(open(index_file, "r").read(), "\012")
+    
+        index = []
+        real_names = []
+        for i in lines:
+    
+            if i == "":
+                break
+    
+            details = string.split(i)
+            index.append(details[0])
+            real_names.append(details[-1])
+    
+        no_index = 0
+    except:
+        no_index = 1
+    
+    # If there is no index then look at all the .inf files and determine the order
+    # in which they are to be stored in the UEF file
+    if no_index == 1:
+    
+        # List all the files
+        files = os.listdir(in_dir)
+    
+        # Keep all the .inf files
+        infs = []
+        for i in files:
+            if string.lower(i[-4:]) == (suffix+"inf"):
+                infs.append(i)
+    
+        # Find the file which follows each file and the real name of the file
+        nexts = []
+        names = []
+        for i in infs:
+            # Read the .inf file
+            details = string.split(open(in_dir+os.sep+i, "r").readline())
+    
+            # First entry may be the name of the file assuming $.name
+            # or similar
+            if string.find(details[0], ".") != -1:
+                # Add the real name to the list of names
+                names.append(details[0])
+                details = details[1:]
+            else:
+                # Add the file name to the list of names
+                names.append("$."+i)
+    
+            # Next two entries should be the load and execution addresses
+            details = details[2:]
+    
+            if len(details) >= 2:
+                # Next file should be the last two entries in the list
+                if string.upper(details[-2]) == "NEXT":
+                    # Next file
+                    nexts.append(details[-1])
+                elif string.upper(details[-1][:5]) == "NEXT=":
+                    # Next file
+                    nexts.append(details[-1][5:])
+                else:
+                    # No next file
+                    nexts.append("")
+    
+            elif len(details) == 1:
+                # Not enough entries for there to be a NEXT <file> entry
+                # Add to the end of the list (could be the last file)
+                if string.upper(details[-1][:5]) == "NEXT=":
+                    # Next file
+                    nexts.append(details[-1][5:])
+                else:
+                    nexts.append("")
+            else:
+                nexts.append("")
+    
+        # Determine the order of files
+        index = []
+        real_names = []
+    
+        # Insert files before the ones they specify as next files
+        # Look through the .inf file list and real name list
+        for i in range(0,len(infs)):
+    
+            # Determine which files precedes this one
+            which = find_in_list(nexts, names[i])
+            if which == -1:
+                # No files precede this one
+                index.insert(0, infs[i][:-4])
+                real_names.insert(0, names[i])
+            else:
+                # Find the preceding file in the new
+                # real names list
+                which = find_in_list(real_names, names[which])
+    
+                if which != -1:
+                    # File is there, so add this one after it
+                    index.insert(which+1, infs[i][:-4])
+                    real_names.insert(which+1, names[i])
+                else:
+                    # File is not (yet) present
+    
+                    # Determine whether there is a file following
+                    # this one
+                    if nexts[i] != "":
+    
+                        # Is the file in the new list?
+                        which = find_in_list(real_names, nexts[i])
+            
+                        if which != -1:
+                            # Insert this file before the file in question
+                            index.insert(which, infs[i][:-4])
+                            real_names.insert(which, names[i])
+                        else:
+                            # File isn't in the new list
+                            index.append(infs[i][:-4])
+                            real_names.append(names[i])
+    
                     else:
-                        # File isn't in the new list
+                        # No files follow this one
                         index.append(infs[i][:-4])
                         real_names.append(names[i])
-
-                else:
-                    # No files follow this one
-                    index.append(infs[i][:-4])
-                    real_names.append(names[i])
-
-
-
-# Create the UEF file
-
-try:
-    if compress == 1:
-        uef = gzip.open(uef_file, "wb")
-    else:
-        uef = open(uef_file, "wb")
-except:
-    print "Couldn't open the UEF file, %s" % uef_file
-    print
-    sys.exit()
-
-# Write the UEF file header
-
-uef.write("UEF File!\000")
-
-# Minor and major version numbers
-
-uef.write(number(1, 6) + number(1, 0))
-
-# Begin writing chunks
-
-# Creator chunk
-
-we_are = "INF2UEF "+version+"\000"
-if (len(we_are) % 4) != 0:
-    we_are = we_are + ("\000"*(4-(len(we_are) % 4)))
-
-# Write this program's details
-chunk(uef, 0, we_are)
-
-
-# Platform chunk
-
-chunk(uef, 5, number(1, 1))    # Electron with any keyboard layout
-
-
-# Specify tape chunks
-
-chunk(uef, 0x110, number(2,0x05dc))
-chunk(uef, 0x100, number(1,0xdc))
-
-
-# Read the index
-
-for i in range(0,len(index)):
-
-    file_name = index[i]
-    real_name = real_names[i]
-    if real_name[:2] == "$.":
-        real_name = real_name[2:]
-
-    details = []
+    
+    
+    
+    # Create the UEF file
+    
     try:
-        details = string.split(open(in_dir + os.sep + file_name + suffix + "inf", "r").readline())
-    except IOError:
-        try:
-            details = string.split(open(in_dir + os.sep + file_name + suffix + "INF", "r").readline())
-        except IOError:
-            print "Couldn't find file,", file_name+suffix+"inf", "or", file_name+suffix+"INF"
-
-    if details != []:
-        try:
-            in_file = open(in_dir + os.sep + file_name, "rb")
-            in_file.seek(0, 2)
-            length = in_file.tell()
-            in_file.seek(0, 0)
-
-            if string.find(details[0], ".") != -1:
-                load, exe = details[1], details[2]
-            else:
-                load, exe = details[0], details[1]
-
-#            if (details[0] == file_name) | (details[0] == "$."+file_name):
-#                load, exe = details[1], details[2]
-#            else:
-#                load, exe = details[0], details[1]
+        if compress == 1:
+            uef = gzip.open(uef_file, "wb")
+        else:
+            uef = open(uef_file, "wb")
+    except:
+        sys.stderr.write("Couldn't open the UEF file, %s\n" % uef_file)
+        sys.exit(1)
     
+    # Write the UEF file header
+    
+    uef.write("UEF File!\000")
+    
+    # Minor and major version numbers
+    
+    uef.write(number(1, 6) + number(1, 0))
+    
+    # Begin writing chunks
+    
+    # Creator chunk
+    
+    we_are = "INF2UEF "+version+"\000"
+    if (len(we_are) % 4) != 0:
+        we_are = we_are + ("\000"*(4-(len(we_are) % 4)))
+    
+    # Write this program's details
+    chunk(uef, 0, we_are)
+    
+    
+    # Platform chunk
+    
+    chunk(uef, 5, number(1, 1))    # Electron with any keyboard layout
+    
+    
+    # Specify tape chunks
+    
+    chunk(uef, 0x110, number(2,0x05dc))
+    chunk(uef, 0x100, number(1,0xdc))
+    
+    
+    # Read the index
+    
+    for i in range(0,len(index)):
+    
+        file_name = index[i]
+        real_name = real_names[i]
+        if real_name[:2] == "$.":
+            real_name = real_name[2:]
+    
+        details = []
+        try:
+            details = string.split(open(in_dir + os.sep + file_name + suffix + "inf", "r").readline())
+        except IOError:
             try:
-                load = hex2num(load)
-                exe = hex2num(exe)
-            except:
-                print "Problem with", in_dir + os.sep + file_name,": Information file is possibly incorrect."
-                sys.exit()
+                details = string.split(open(in_dir + os.sep + file_name + suffix + "INF", "r").readline())
+            except IOError:
+                sys.stderr.write("Couldn't find file,\n", file_name+suffix+"inf", "or", file_name+suffix+"INF")
     
-            # Reset the block number to zero
-            n = 0
+        if details != []:
+            try:
+                in_file = open(in_dir + os.sep + file_name, "rb")
+                in_file.seek(0, 2)
+                length = in_file.tell()
+                in_file.seek(0, 0)
     
-            # Long gap
-            gap = 1
-        
-            # Write block details
-            while 1:
-                block, last = read_block(in_file, real_name, load, exe, length, n)
-        
-                if gap == 1:
-                    chunk(uef, 0x110, number(2,0x05dc))
-                    gap = 0
+                if string.find(details[0], ".") != -1:
+                    load, exe = details[1], details[2]
                 else:
-                    chunk(uef, 0x110, number(2,0x0258))
-
-                # Write the block to the UEF file
-                chunk(uef, 0x100, block)
+                    load, exe = details[0], details[1]
     
-                if last == 1:
-                    break
+    #            if (details[0] == file_name) | (details[0] == "$."+file_name):
+    #                load, exe = details[1], details[2]
+    #            else:
+    #                load, exe = details[0], details[1]
+        
+                try:
+                    load = hex2num(load)
+                    exe = hex2num(exe)
+                except:
+                    sys.stderr.write("Problem with file: %s\n" % (in_dir + os.sep + file_name))
+                    sys.stderr.write("Information file may be incorrect.\n")
+                    sys.exit(1)
+        
+                # Reset the block number to zero
+                n = 0
+        
+                # Long gap
+                gap = 1
+            
+                # Write block details
+                while 1:
+                    block, last = read_block(in_file, real_name, load, exe, length, n)
+            
+                    if gap == 1:
+                        chunk(uef, 0x110, number(2,0x05dc))
+                        gap = 0
+                    else:
+                        chunk(uef, 0x110, number(2,0x0258))
     
-                # Increment the block number
-                n = n + 1
+                    # Write the block to the UEF file
+                    chunk(uef, 0x100, block)
+        
+                    if last == 1:
+                        break
+        
+                    # Increment the block number
+                    n = n + 1
+        
+                # Close the file
+                in_file.close()
+        
+            except IOError:
+                sys.stderr.write("Couldn't find file,\n", file_name)
     
-            # Close the file
-            in_file.close()
     
-        except IOError:
-            print "Couldn't find file,", file_name
-
-
-
-# Write some finishing bytes to the file
-chunk(uef, 0x110, number(2,0x0258))
-chunk(uef, 0x112, number(2,0x0258))
-
-
-# Close the UEF file
-uef.close()
-
-# Exit
-sys.exit()
+    
+    # Write some finishing bytes to the file
+    chunk(uef, 0x110, number(2,0x0258))
+    chunk(uef, 0x112, number(2,0x0258))
+    
+    
+    # Close the UEF file
+    uef.close()
+    
+    # Exit
+    sys.exit()

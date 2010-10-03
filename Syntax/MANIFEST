@@ -1,9 +1,7 @@
-README.txt
-cmdsyntax.py
-setup.py
-ADF2INF.py
 INF2UEF.py
+MANIFEST
+README.txt
+setup.py
 T2INF.py
 T2UEF.py
 UEF2INF.py
-UEFtrans.py
