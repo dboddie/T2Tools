@@ -1,12 +1,22 @@
 #! /usr/bin/python
 
 """
-    Name            : UEF2INF.py
-    Author          : David Boddie <david@boddie.org.uk>
-    Created         : Tue 21st November 2000
-    Last updated    : Tue 15th April 2003
-    Purpose         : Convert UEF archives to files on a disc.
-    WWW             : http://www.boddie.org.uk/david/Projects/Emulation/T2Tools
+UEF2INF.py - Convert UEF archives to files on a disc.
+
+Copyright (c) 2000-2010, David Boddie <david@boddie.org.uk>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import cmdsyntax, sys, string, os, gzip

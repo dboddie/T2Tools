@@ -1,85 +1,22 @@
 #! /usr/bin/python
 
 """
-    Name         : UEFtrans.py
-    Author       : David Boddie <david@boddie.org.uk>
-    Created      : Sun 08th July 2001
-    Last updated : Tue 15th April 2003
-    Purpose      : Catalogue UEF archives or add and remove files.
-    WWW          : http://www.boddie.org.uk/david/Projects/Emulation/UEFtrans
+UEFtrans.py - Catalogue UEF archives or add and remove files.
 
-    History:
+Copyright (c) 2001-2010, David Boddie <david@boddie.org.uk>
 
-        0.10 (Wed 11th July 2001)
-        First release.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-        0.11 (Thu 12th July 2001)
-        Added various chunks to those recognised by the "chunks" command.
-        Insert, extract and remove commands now support operations on
-        individual chunks as well as on files.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-        0.20 (Fri 13th July 2001)
-        Finalised changes to the insert and extract commands.
-        Changed the filename format for importing and exporting chunks of
-        arbitrary chunk number to requiring a hexadecimal suffix.
-
-        0.21 (Fri 13th July 2001)
-        Added the chunk information for changes of baud rate (0x113).
-
-        0.22 (Tue 17th July 2001)
-        Changed my e-mail address and WWW address (above).
-        Added some comments and help messages.
-        Corrected the chunk number for memory to the correct value (0x410). 
-
-        0.23 (Sat 21st July 2001)
-        Added the detailed information command (wwwinfo).
-
-        0.24 (Mon 23rd July 2001)
-        Made the integer division in the number function explicit.
-
-        0.30 (Tue 24th July 2001)
-        Added functionality so that files and chunks can be extracted to
-        other UEF files.
-
-        0.31 (Tue 24th July 2001)
-        The creator chunk is now automatically written when extracting
-        files to a new UEF file.
-
-        0.32 (Wed 25th July 2001)
-        Checks the namespace so that the script can be imported as a module.
-
-        0.33 (Thu 26th July 2001)
-        Allowed for chunks to have data of zero bytes in length.
-        Modified the function to read the creator and emulator information
-        to take this possibility into account.
-
-        0.40 (Fri 10th August 2001)
-        Corrected the conversion of tape data chunks which included start and
-        stop bits (chunk 0x102) when extracting files.
-
-        0.41 (Mon 13th August 2001)
-        Added UEF file version information reporting to info and wwwinfo
-        commands.
-        Fixed the new command so that the keyboard layout is set correctly.
-        
-        0.411c (Sat 27th April 2002)
-        Minor correction to the spelling of the target_machine variable
-        when it is initialised.
-        
-        This version requires the cmdsyntax module in order to operate,
-        but can optionally generate a GUI if invalid syntax is used to
-        invoke the program.
-        
-        0.412c (Fri 3rd May 2002)
-        The first match is obtained earlier to ensure that, when the GUI
-        returns no information, the general help message is displayed.
-        
-        0.42c (Tue 15th April 2003)
-        Changed the call to the cmdsyntax.Form.get_args method as the new
-        cmdsyntax (0.80) behaviour has been changed to be more consistent
-        with the Syntax.get_args behaviour.
-        The form can now also use valid information from failed matches to
-        provide default values for form fields.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import sys, string, os, gzip

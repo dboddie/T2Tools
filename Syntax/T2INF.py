@@ -1,30 +1,22 @@
 #! /usr/bin/python
 
 """
-    Name         : T2INF.py (was T2Peg400.py)
-    Author       : David Boddie <david@boddie.org.uk>
-    Created      : Mon 28th August 2000
-    Last updated : Tue 15th April 2003
-    Purpose      : Convert Slogger T2* files to files on a disc.
-    WWW          : http://www.boddie.org.uk/david/Projects/Emulation/T2Tools
+T2INF.py - Convert Slogger T2* files to files on a disc.
 
-    License :
+Copyright (c) 2000-2010, David Boddie <david@boddie.org.uk>
 
-    This program is freeware. This means that it can be copied as long as it
-    remains complete (in the form it was originally distributed) and is not
-    charged for. If you want to use it in your own software then contacting
-    me may prove beneficial since I may be able to provide a more up-to-date
-    version.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    This program, although designed to extract all files from tape images,
-    is intended for the extraction of users' own files from such images.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    Using this program to extract software which has been encoded in an
-    image may be contravening the conditions of that software's license.
-
-    You use this program entirely at your own risk.
-
-    All copyrights and trademarks acknowledged.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import sys, string, os
